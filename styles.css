@@ -1,8 +1,32 @@
-.spin {
+.dictation-icon-spin {
   animation: spin 1.5s linear infinite;
 }
 @keyframes spin {
   100% {
     transform: rotate(360deg);
   }
+}
+
+
+.dictation-indicator {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    border-radius: 6px;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    opacity: 1;
+    background: var(--interactive-accent, #fff);
+}
+.dictation-indicator .processing {
+    cursor: pointer;
+}
+.dictation-indicator-spin {
+    transform-origin: 50% 50%;
+    animation: dictation-spin 1s linear infinite;
+}
+
+@keyframes dictation-spin {
+    100% { transform: rotate(360deg); }
 }

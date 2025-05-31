@@ -7,8 +7,7 @@ export class DictationIndicator {
 	private bgColor = "var(--interactive-accent)";
 	private strokeColor = "#FFF";
 	private currentType: "recording" | "processing" | null = null;
-
-	private recordingIndicator = `
+	private recordingIndicatorHTML = `
             <svg width="${this.indicatorSize}" height="${this.indicatorSize}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect x="2" y="2" width="20" height="20" rx="6" fill="${this.bgColor}"/>
                 <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" stroke="${this.strokeColor}" stroke-width="2" fill="${this.bgColor}"/>
@@ -16,38 +15,32 @@ export class DictationIndicator {
                 <line x1="12" x2="12" y1="19" y2="22" stroke="${this.strokeColor}" stroke-width="2"/>
             </svg>
         `;
-
-	private processingIndicator = `
-            <svg width="${this.indicatorSize}" height="${this.indicatorSize}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="spin">
+	private processingIndicatorHTML = `
+            <svg width="${this.indicatorSize}" height="${this.indicatorSize}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="dictation-icon-spin">
                 <rect x="2" y="2" width="20" height="20" rx="6" fill="${this.bgColor}"/>
-                <g class="dictation-indicator-spin">
+                <g>
                     <path d="M21 12a9 9 0 1 1-6.219-8.56" stroke="${this.strokeColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
                 </g>
             </svg>
         `;
 
-	// Add a callback property for indicator click
+	// callback for indicator click
 	onStopRecording?: () => void;
 
 	show(indicatorType: "recording" | "processing") {
 		if (this.indicatorEl) {
-			// If already shown, just update the type and SVG
+			// Update to the processing type and SVG
 			this.currentType = indicatorType;
-			this.indicatorEl.innerHTML =
-				indicatorType === "processing"
-					? this.processingIndicator
-					: this.recordingIndicator;
-			this.indicatorEl.classList.toggle("processing", indicatorType === "processing");
+			this.indicatorEl.innerHTML = this.processingIndicatorHTML;
+			this.indicatorEl.classList.toggle("processing");
 			return;
 		}
+		// Construct the processing indicator element
 		this.currentType = indicatorType;
 		this.indicatorEl = document.createElement("div");
 		this.indicatorEl.className = "dictation-indicator";
-		this.indicatorEl.innerHTML =
-			indicatorType === "processing" 
-				? this.processingIndicator
-				: this.recordingIndicator;
-		this.indicatorEl.classList.toggle("processing", indicatorType === "processing");
+		this.indicatorEl.innerHTML = this.recordingIndicatorHTML;
+		this.indicatorEl.classList.toggle("processing");
 		this.indicatorEl.style.position = "absolute";
 		this.indicatorEl.style.zIndex = "9999";
 		this.indicatorEl.style.pointerEvents = "auto";
@@ -100,7 +93,7 @@ export class DictationIndicator {
 		}
 		if (rect && this.indicatorEl) {
 			// Center the indicator horizontally above the cursor, with a small gap
-			const gap = 6; // px, space between cursor and indicator
+			const gap = 8; // px, space between cursor and indicator
 			this.indicatorEl.style.left = `${
 				rect.left +
 				window.scrollX +
@@ -114,29 +107,3 @@ export class DictationIndicator {
 	};
 }
 
-// Add some basic styles for the indicator (can be moved to CSS)
-const style = document.createElement("style");
-style.textContent = `
-.dictation-indicator {
-    width: 28px;
-    height: 28px;
-    display: flex;
-    border-radius: 6px;
-    align-items: center;
-    justify-content: center;
-    pointer-events: none;
-    opacity: 1;
-    background: var(--interactive-accent, #fff);
-}
-.dictation-indicator.processing {
-    cursor: pointer;
-}
-.dictation-indicator-spin {
-    transform-origin: 50% 50%;
-    animation: dictation-spin 1s linear infinite;
-}
-@keyframes dictation-spin {
-    100% { transform: rotate(360deg); }
-}
-`;
-document.head.appendChild(style);
