@@ -7,7 +7,7 @@ export class DictationIndicator {
 	private bgColor = "var(--interactive-accent)";
 	private strokeColor = "#FFF";
 	private currentType: "recording" | "processing" | null = null;
-	
+
 	private recordingIndicator = `
             <svg width="${this.indicatorSize}" height="${this.indicatorSize}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect x="2" y="2" width="20" height="20" rx="6" fill="${this.bgColor}"/>
@@ -26,50 +26,46 @@ export class DictationIndicator {
             </svg>
         `;
 
+	// Add a callback property for indicator click
+	onStopRecording?: () => void;
+
 	show(indicatorType: "recording" | "processing") {
-		// If indicator already exists and we're just changing type, update it
-		if (this.indicatorEl && this.currentType !== indicatorType) {
-			if (indicatorType === "processing") {
-				this.indicatorEl.innerHTML = this.processingIndicator;
-			} else {
-				this.indicatorEl.innerHTML = this.recordingIndicator;
-			}
+		if (this.indicatorEl) {
+			// If already shown, just update the type and SVG
 			this.currentType = indicatorType;
+			this.indicatorEl.innerHTML =
+				indicatorType === "processing"
+					? this.processingIndicator
+					: this.recordingIndicator;
+			this.indicatorEl.classList.toggle("processing", indicatorType === "processing");
 			return;
 		}
-		
-		// If indicator doesn't exist, create it
-		if (!this.indicatorEl) {
-			this.indicatorEl = document.createElement("div");
-			this.indicatorEl.className = "dictation-indicator";
-			this.indicatorEl.style.position = "absolute";
-			this.indicatorEl.style.zIndex = "9999";
-			this.indicatorEl.style.pointerEvents = "none";
-			this.indicatorEl.style.transition = "opacity 0.2s";
-			this.indicatorEl.style.opacity = "1";
-			
-			// Set the initial indicator type
-			if (indicatorType === "processing") {
-				this.indicatorEl.innerHTML = this.processingIndicator;
-			} else {
-				this.indicatorEl.innerHTML = this.recordingIndicator;
-			}
-			this.currentType = indicatorType;
-			
-			document.body.appendChild(this.indicatorEl);
-			this.positionAtCursor();
-			document.addEventListener("selectionchange", this.positionAtCursor);
-		}
+		this.currentType = indicatorType;
+		this.indicatorEl = document.createElement("div");
+		this.indicatorEl.className = "dictation-indicator";
+		this.indicatorEl.innerHTML =
+			indicatorType === "processing" 
+				? this.processingIndicator
+				: this.recordingIndicator;
+		this.indicatorEl.classList.toggle("processing", indicatorType === "processing");
+		this.indicatorEl.style.position = "absolute";
+		this.indicatorEl.style.zIndex = "9999";
+		this.indicatorEl.style.pointerEvents = "auto";
+		this.indicatorEl.style.transition = "opacity 0.2s";
+		this.indicatorEl.style.opacity = "1";
+		document.body.appendChild(this.indicatorEl);
+		this.positionAtCursor();
+		document.addEventListener("selectionchange", this.positionAtCursor);
+		this.indicatorEl.addEventListener("click", this.handleClick);
 	}
 
 	hide() {
 		if (this.indicatorEl) {
-			// Remove event listener before removing the element to avoid duplicate listeners
 			document.removeEventListener(
 				"selectionchange",
 				this.positionAtCursor
 			);
-			// Remove the indicator from the DOM if it is still attached
+			this.indicatorEl.removeEventListener("click", this.handleClick);
 			if (this.indicatorEl.parentNode) {
 				this.indicatorEl.parentNode.removeChild(this.indicatorEl);
 			}
@@ -77,6 +73,12 @@ export class DictationIndicator {
 			this.currentType = null;
 		}
 	}
+
+	private handleClick = async () => {
+		if (this.currentType === "recording" && this.onStopRecording) {
+			await this.onStopRecording();
+		}
+	};
 
 	private positionAtCursor = () => {
 		const selection = window.getSelection();
@@ -125,6 +127,9 @@ style.textContent = `
     pointer-events: none;
     opacity: 1;
     background: var(--interactive-accent, #fff);
+}
+.dictation-indicator.processing {
+    cursor: pointer;
 }
 .dictation-indicator-spin {
     transform-origin: 50% 50%;

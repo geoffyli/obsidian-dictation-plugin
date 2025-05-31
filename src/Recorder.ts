@@ -66,8 +66,6 @@ export class Recorder implements AudioRecorder {
 				const blob = new Blob(this.chunks, { type: this.mimeType });
 				this.chunks.length = 0;
 
-				console.log("Stop recording (no active recorder):", blob);
-
 				resolve(blob);
 			} else {
 				this.recorder.addEventListener(
@@ -77,8 +75,6 @@ export class Recorder implements AudioRecorder {
 							type: this.mimeType,
 						});
 						this.chunks.length = 0;
-
-						console.log("Stop recording (active recorder):", blob);
 
 						// will stop all the tracks associated with the stream, effectively releasing any resources (like the mic) used by them
 						if (this.recorder) {
