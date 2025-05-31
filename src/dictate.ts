@@ -1,4 +1,5 @@
 import { RecordingStatus } from "./ui/StatusBar";
+import { Notice } from "obsidian";
 
 export async function dictate() {
 	// Toggle recording state
@@ -18,7 +19,12 @@ export async function dictate() {
 			.toISOString()
 			.replace(/[:.]/g, "-")}.${extension}`;
 		// Use audioBlob to send or save the recorded audio as needed
-		await this.Transcriber.sendAudioData(audioBlob, fileName);
+		const transcription = await this.Transcriber.requestTranscription(audioBlob, fileName);
+		if (!transcription){
+			new Notice("Transcription failed. Please check your OpenAI API key and settings.");
+			return;
+		}
+		await this.Transcriber.insertTranscription(transcription);
 		this.statusBar.updateStatus(RecordingStatus.Idle);
 		this.dictationIndicator.hide();
 	}

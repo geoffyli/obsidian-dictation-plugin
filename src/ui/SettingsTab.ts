@@ -18,10 +18,8 @@ export class SettingsTab extends PluginSettingTab {
 		containerEl.empty();
 		this.createHeader();
 		this.createApiKeySetting();
-		this.createApiUrlSetting();
 		this.createModelSetting();
 		this.createPromptSetting();
-		this.createLanguageSetting();
 		this.createDebugModeToggleSetting();
 	}
 
@@ -60,24 +58,11 @@ export class SettingsTab extends PluginSettingTab {
 		);
 	}
 
-	private createApiUrlSetting(): void {
-		this.createTextSetting(
-			"API URL",
-			"Specify the endpoint that will be used to make requests to",
-			"https://api.your-custom-url.com",
-			this.plugin.settings.apiUrl,
-			async (value) => {
-				this.plugin.settings.apiUrl = value;
-				await this.settingsManager.saveSettings(this.plugin.settings);
-			}
-		);
-	}
-
 	private createModelSetting(): void {
 		this.createTextSetting(
 			"Model",
 			"Specify the machine learning model to use for generating text",
-			"whisper-1",
+			"gpt-4o-transcribe",
 			this.plugin.settings.model,
 			async (value) => {
 				this.plugin.settings.model = value;
@@ -89,24 +74,11 @@ export class SettingsTab extends PluginSettingTab {
 	private createPromptSetting(): void {
 		this.createTextSetting(
 			"Prompt",
-			"Optional: Add words with their correct spellings to help with transcription. Make sure it matches the chosen language.",
-			"Example: ZyntriQix, Digique Plus, CynapseFive",
+			"Optional: You can use a prompt to improve the quality of the transcripts generated.",
+			"Prompt for the model",
 			this.plugin.settings.prompt,
 			async (value) => {
 				this.plugin.settings.prompt = value;
-				await this.settingsManager.saveSettings(this.plugin.settings);
-			}
-		);
-	}
-
-	private createLanguageSetting(): void {
-		this.createTextSetting(
-			"Language",
-			"Specify the language of the message being used by the model",
-			"en",
-			this.plugin.settings.language,
-			async (value) => {
-				this.plugin.settings.language = value;
 				await this.settingsManager.saveSettings(this.plugin.settings);
 			}
 		);

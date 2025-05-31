@@ -2,19 +2,15 @@ import { Plugin } from "obsidian";
 
 export interface PluginSettings {
 	apiKey: string;
-	apiUrl: string;
 	model: string;
 	prompt: string;
-	language: string;
 	debugMode: boolean;
 }
 
 export const DEFAULT_SETTINGS: PluginSettings = {
 	apiKey: "",
-	apiUrl: "https://api.openai.com/v1/audio/transcriptions",
-	model: "whisper-1",
+	model: "gpt-4o-transcribe",
 	prompt: "",
-	language: "en",
 	debugMode: false,
 };
 

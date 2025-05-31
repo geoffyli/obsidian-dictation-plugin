@@ -4,8 +4,9 @@ import { Transcriber } from "src/Transcriber";
 import { SettingsTab } from "src/ui/SettingsTab";
 import { SettingsManager, PluginSettings } from "src/SettingsManager";
 import { Recorder } from "src/Recorder";
-import { RecordingStatus, StatusBar } from "src/ui/StatusBar";
+import { StatusBar } from "src/ui/StatusBar";
 import { DictationIndicator } from "./src/ui/Indicator";
+import { dictate } from "./src/Dictate";
 
 export default class Dictation extends Plugin {
 	settings: PluginSettings;
@@ -28,23 +29,8 @@ export default class Dictation extends Plugin {
 		this.recorder = new Recorder();
 		this.dictationIndicator = new DictationIndicator();
 		this.statusBar = new StatusBar(this);
-
+		this.dictationIndicator.onStopRecording = dictate.bind(this);
 		this.addCommands();
-
-		this.dictationIndicator.onStopRecording = async () => {
-			if (this.statusBar.status == RecordingStatus.Recording) {
-				const audioBlob = await this.recorder.stopRecording();
-				this.statusBar.updateStatus(RecordingStatus.Processing);
-				this.dictationIndicator.show("processing");
-				const extension = this.recorder.getMimeType()?.split("/")[1];
-				const fileName = `${new Date()
-					.toISOString()
-					.replace(/[:.]/g, "-")}.${extension}`;
-				await this.Transcriber.sendAudioData(audioBlob, fileName);
-				this.statusBar.updateStatus(RecordingStatus.Idle);
-				this.dictationIndicator.hide();
-			}
-		};
 	}
 
 	onunload() {
@@ -55,30 +41,7 @@ export default class Dictation extends Plugin {
 		this.addCommand({
 			id: "start-stop-transcribing",
 			name: "Start/stop Transcribing",
-			callback: async () => {
-				// Toggle recording state
-				if (this.statusBar.status == RecordingStatus.Idle) {
-					// Start recording
-					await this.recorder.startRecording();
-					this.statusBar.updateStatus(RecordingStatus.Recording);
-					this.dictationIndicator.show("recording");
-				} else if (this.statusBar.status == RecordingStatus.Recording) {
-					// Stop recording and process the audio
-					const audioBlob = await this.recorder.stopRecording();
-					this.statusBar.updateStatus(RecordingStatus.Processing);
-					this.dictationIndicator.show("processing");
-					const extension = this.recorder
-						.getMimeType()
-						?.split("/")[1];
-					const fileName = `${new Date()
-						.toISOString()
-						.replace(/[:.]/g, "-")}.${extension}`;
-					// Use audioBlob to send or save the recorded audio as needed
-					await this.Transcriber.sendAudioData(audioBlob, fileName);
-					this.statusBar.updateStatus(RecordingStatus.Idle);
-					this.dictationIndicator.hide();
-				}
-			},
+			callback: dictate.bind(this),
 			hotkeys: [
 				{
 					modifiers: ["Alt"],
