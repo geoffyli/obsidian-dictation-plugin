@@ -42,20 +42,21 @@ export default class Dictation extends Plugin {
 
 	addCommands() {
 		this.addCommand({
-			id: "start-stop-recording",
-			name: "Start/stop recording",
+			id: "start-stop-transcribing",
+			name: "Start/stop Transcribing",
 			callback: async () => {
 				// Toggle recording state
-				if (this.statusBar.status !== RecordingStatus.Recording) {
+				if (this.statusBar.status == RecordingStatus.Idle) {
 					// Start recording
-					this.statusBar.updateStatus(RecordingStatus.Recording);
 					await this.recorder.startRecording();
-					this.dictationIndicator.show();
-				} else {
-					this.statusBar.updateStatus(RecordingStatus.Processing);
+					this.statusBar.updateStatus(RecordingStatus.Recording);
+					this.dictationIndicator.show("recording");
+				} 
+				else if (this.statusBar.status == RecordingStatus.Recording) {
 					// Stop recording and process the audio
 					const audioBlob = await this.recorder.stopRecording();
-					this.dictationIndicator.hide();
+					this.statusBar.updateStatus(RecordingStatus.Processing);
+					this.dictationIndicator.show("processing");
 					const extension = this.recorder
 						.getMimeType()
 						?.split("/")[1];
@@ -65,6 +66,7 @@ export default class Dictation extends Plugin {
 					// Use audioBlob to send or save the recorded audio as needed
 					await this.Transcriber.sendAudioData(audioBlob, fileName);
 					this.statusBar.updateStatus(RecordingStatus.Idle);
+					this.dictationIndicator.hide();
 				}
 			},
 			hotkeys: [
