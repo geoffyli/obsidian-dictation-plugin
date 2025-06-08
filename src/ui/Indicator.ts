@@ -1,8 +1,17 @@
 // Indicator.ts
 // UI component to show a microphone icon at the cursor position when dictation is active
 
+import { Plugin } from "obsidian";
+import { getActiveDocument } from "src/ObsidianUtils";
+
 export class DictationIndicator {
+	private plugin: Plugin;
 	private indicatorEl: HTMLElement | null = null;
+	private cachedDocument: Document | null = null;
+	
+	constructor(plugin: Plugin) {
+		this.plugin = plugin;
+	}
 	private indicatorSize = 24;
 	private bgColor = "var(--interactive-accent)";
 	private strokeColor = "#FFF";
@@ -35,9 +44,12 @@ export class DictationIndicator {
 			this.indicatorEl.classList.toggle("processing");
 			return;
 		}
+		// Cache the document when first showing the indicator
+		this.cachedDocument = getActiveDocument(this.plugin);
+		
 		// Construct the processing indicator element
 		this.currentType = indicatorType;
-		this.indicatorEl = document.createElement("div");
+		this.indicatorEl = this.cachedDocument.createElement("div");
 		this.indicatorEl.className = "dictation-indicator";
 		this.indicatorEl.innerHTML = this.recordingIndicatorHTML;
 		this.indicatorEl.classList.toggle("processing");
@@ -46,15 +58,17 @@ export class DictationIndicator {
 		this.indicatorEl.style.pointerEvents = "auto";
 		this.indicatorEl.style.transition = "opacity 0.2s";
 		this.indicatorEl.style.opacity = "1";
-		document.body.appendChild(this.indicatorEl);
+		
+		this.cachedDocument.body.appendChild(this.indicatorEl);
 		this.positionAtCursor();
-		document.addEventListener("selectionchange", this.positionAtCursor);
+		this.cachedDocument.addEventListener("selectionchange", this.positionAtCursor);
 		this.indicatorEl.addEventListener("click", this.handleClick);
 	}
 
 	hide() {
-		if (this.indicatorEl) {
-			document.removeEventListener(
+		if (this.indicatorEl && this.cachedDocument) {
+			// Remove event listener from the cached document
+			this.cachedDocument.removeEventListener(
 				"selectionchange",
 				this.positionAtCursor
 			);
@@ -64,6 +78,7 @@ export class DictationIndicator {
 			}
 			this.indicatorEl = null;
 			this.currentType = null;
+			this.cachedDocument = null;
 		}
 	}
 
@@ -74,7 +89,9 @@ export class DictationIndicator {
 	};
 
 	private positionAtCursor = () => {
-		const selection = window.getSelection();
+		if (!this.cachedDocument) return;
+		const targetWindow = this.cachedDocument.defaultView || window;
+		const selection = targetWindow.getSelection();
 		if (!selection || selection.rangeCount === 0) return;
 		const range = selection.getRangeAt(0);
 		let rect: DOMRect | null = null;
@@ -82,7 +99,7 @@ export class DictationIndicator {
 			rect = range.getBoundingClientRect();
 		} else {
 			// Insert a temporary span to get the caret position
-			const tempSpan = document.createElement("span");
+			const tempSpan = this.cachedDocument.createElement("span");
 			tempSpan.textContent = "\u200b";
 			range.insertNode(tempSpan);
 			rect = tempSpan.getBoundingClientRect();
@@ -96,12 +113,12 @@ export class DictationIndicator {
 			const gap = 8; // px, space between cursor and indicator
 			this.indicatorEl.style.left = `${
 				rect.left +
-				window.scrollX +
+				targetWindow.scrollX +
 				rect.width / 2 -
 				this.indicatorSize / 2
 			}px`;
 			this.indicatorEl.style.top = `${
-				rect.top + window.scrollY - this.indicatorSize - gap
+				rect.top + targetWindow.scrollY - this.indicatorSize - gap
 			}px`;
 		}
 	};

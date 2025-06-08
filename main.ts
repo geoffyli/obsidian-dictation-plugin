@@ -27,7 +27,7 @@ export default class Dictation extends Plugin {
 		this.timer = new Timer();
 		this.Transcriber = new Transcriber(this);
 		this.recorder = new Recorder();
-		this.dictationIndicator = new DictationIndicator();
+		this.dictationIndicator = new DictationIndicator(this);
 		this.statusBar = new StatusBar(this);
 		this.dictationIndicator.onStopRecording = dictate.bind(this);
 		this.addCommands();

@@ -1,6 +1,7 @@
 import Dictation from "main";
 import { Notice, MarkdownView } from "obsidian";
 import OpenAI from "openai";
+import { getActiveDocument } from "./ObsidianUtils";
 
 export class Transcriber {
 	private plugin: Dictation;
@@ -58,8 +59,12 @@ export class Transcriber {
 	}
 
 	async insertTranscription(transcription: string): Promise<void> {
+		// Find the active document context
+		const activeDocument = getActiveDocument(this.plugin);
+		const activeWindow = activeDocument.defaultView || window;
+		
 		// Try to get the currently focused element
-		const activeElement = document.activeElement;
+		const activeElement = activeDocument.activeElement;
 		if (
 			activeElement &&
 			(activeElement instanceof HTMLInputElement ||
@@ -93,11 +98,11 @@ export class Transcriber {
 			activeElement.contentEditable === "true"
 		) {
 			// Handle contentEditable elements
-			const selection = window.getSelection();
+			const selection = activeWindow.getSelection();
 			if (selection && selection.rangeCount > 0) {
 				const range = selection.getRangeAt(0);
 				range.deleteContents();
-				const textNode = document.createTextNode(transcription);
+				const textNode = activeDocument.createTextNode(transcription);
 				range.insertNode(textNode);
 
 				// Move cursor to end of inserted text
