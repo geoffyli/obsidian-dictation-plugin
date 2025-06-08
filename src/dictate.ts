@@ -13,6 +13,7 @@ export async function dictate() {
 		const audioBlob = await this.recorder.stopRecording();
 		this.statusBar.updateStatus(RecordingStatus.Processing);
 		this.dictationIndicator.show("processing");
+		this.dictationIndicator.indicatorEl?.classList.toggle("clickable");
 		// Create a file name based on the current date and time
 		const extension = this.recorder.getMimeType()?.split("/")[1];
 		const fileName = `${new Date()

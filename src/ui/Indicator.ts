@@ -50,9 +50,8 @@ export class DictationIndicator {
 		// Construct the processing indicator element
 		this.currentType = indicatorType;
 		this.indicatorEl = this.cachedDocument.createElement("div");
-		this.indicatorEl.className = "dictation-indicator";
+		this.indicatorEl.className = "dictation-indicator clickable";
 		this.indicatorEl.innerHTML = this.recordingIndicatorHTML;
-		this.indicatorEl.classList.toggle("processing");
 		this.indicatorEl.style.position = "absolute";
 		this.indicatorEl.style.zIndex = "9999";
 		this.indicatorEl.style.pointerEvents = "auto";
@@ -84,7 +83,7 @@ export class DictationIndicator {
 
 	private handleClick = async () => {
 		if (this.currentType === "recording" && this.onStopRecording) {
-			await this.onStopRecording();
+			this.onStopRecording();
 		}
 	};
 

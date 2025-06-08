@@ -19,7 +19,7 @@
     opacity: 1;
     background: var(--interactive-accent, #fff);
 }
-.dictation-indicator .processing {
+.dictation-indicator .clickable {
     cursor: pointer;
 }
 .dictation-indicator-spin {
